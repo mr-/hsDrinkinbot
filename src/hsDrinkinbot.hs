@@ -13,19 +13,6 @@ type Drink = String
 
 data Record = Record { drinker :: Name, had :: [Drink]} 
 
-instance Show Record where
-    show r = (drinker r) ++ " had " ++ (unwords $ 
-                                        intersperse "and" $ 
-                                        map (\(x,y) -> (show y) ++ " " ++ x) $ 
-                                        showfoo (had r) [] )
-
-showfoo [] nlist = nlist    
-showfoo (x:xs) nlist = if (lookup x nlist) == Nothing 
-                        then showfoo xs ((x,1):nlist) 
-                        else showfoo xs (inc x nlist)
-    where inc x nlist = map f nlist
-          f (y, n) = if x == y then (x, (n+1)) else (y,n)
-
 
 data Bot = Bot { drinkers :: [Name], 
                  drinks :: [Drink],
@@ -85,10 +72,17 @@ printStats = do
     liftIO $ putStrLn ""
     liftIO $ mapM_ print $ record b 
 
-
 say x = do 
     liftIO $ putStrLn x
     liftIO $ system $ "echo '" ++ x ++ "' | festival --tts" 
+
+header = unlines [  "      /|               |\\ ",
+                    "     / |               | \\ ",
+                    "    /  |               |  \\ ",
+                    "   /   |  DRINKING BOT |   \\ ",
+                    "  /    |               |    \\ ",
+                    " /     |               |     \\ ",
+                    "/______|               |______\\ "]
 
 requiresAction sentence = (has "NAME" ) && (has "DRINK" )
     where has foo = Nothing /= matchRegex (mkRegex foo) sentence
@@ -135,10 +129,16 @@ substitute1 sentence search replace = subRegex (mkRegex search) sentence replace
 readConfig file = do foo <- liftIO $ readFile file
                      return $ lines foo
 
-header = unlines [  "      /|               |\\ ",
-                    "     / |               | \\ ",
-                    "    /  |               |  \\ ",
-                    "   /   |  DRINKING BOT |   \\ ",
-                    "  /    |               |    \\ ",
-                    " /     |               |     \\ ",
-                    "/______|               |______\\ "]
+
+instance Show Record where
+    show r = (drinker r) ++ " had " ++ (unwords $ 
+                                        intersperse "and" $ 
+                                        map (\(x,y) -> (show y) ++ " " ++ x) $ 
+                                        showfoo (had r) [] )
+
+showfoo [] nlist = nlist    
+showfoo (x:xs) nlist = if (lookup x nlist) == Nothing 
+                        then showfoo xs ((x,1):nlist) 
+                        else showfoo xs (inc x nlist)
+    where inc x nlist = map f nlist
+          f (y, n) = if x == y then (x, (n+1)) else (y,n)
