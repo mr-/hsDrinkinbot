@@ -11,7 +11,19 @@ type Drink = String
 data Record = Record { drinker :: Name, had :: [Drink]} 
 
 instance Show Record where
-    show r = (drinker r) ++ " had " ++ (unwords $ had r)
+    show r = (drinker r) ++ " had " ++ (unwords $ 
+                                        intersperse "and" $ 
+                                        map (\(x,y) -> (show y) ++ " " ++ x) $ 
+                                        showfoo (had r) [] )
+
+showfoo [] nlist = nlist    
+showfoo (x:xs) nlist = if (lookup x nlist) == Nothing 
+                        then showfoo xs ((x,1):nlist) 
+                        else showfoo xs (inc x nlist)
+    where inc x nlist = map f nlist
+          f (y, n) = if x == y then (x, (n+1)) else (y,n)
+
+
 data Bot = Bot { drinkers :: [Name], 
                  drinks :: [Drink],
                  says :: [String],
@@ -20,7 +32,7 @@ data Bot = Bot { drinkers :: [Name],
 
 type BotState = StateT Bot IO ()
 
-main = runBot $ do initBot "./players" "./drinks" "./says"
+main = runBot $ do initBot "../data/players" "../data/drinks" "../data/says"
                    doBot
 
 runBot f = 
@@ -86,9 +98,7 @@ pick f = do
     pickR s
 
 pickSentence = pick says 
-
 pickPlayer = pick drinkers 
-
 pickDrink = pick drinks 
 
 updateDrinks d = do
