@@ -5,6 +5,8 @@ import System.Cmd
 import System.Random
 import Control.Concurrent (threadDelay)
 
+pause = 10000000
+
 type Name  = String
 type Drink = String
 
@@ -35,9 +37,6 @@ type BotState = StateT Bot IO ()
 main = runBot $ do initBot "../data/players" "../data/drinks" "../data/says"
                    doBot
 
-runBot f = 
-    runStateT (forever $ (f >> (liftIO $ threadDelay 10000000) )) (Bot [] [] [] []) >> return () 
-
 
 initBot playersFile drinksFile sayFile = 
     do players <- readConfig playersFile
@@ -61,6 +60,10 @@ doBot = do
     else say sentence
     say "Drink drink. Drink drink"
     printStats
+
+
+runBot f = 
+    runStateT (forever $ (f >> (liftIO $ threadDelay pause) )) (Bot [] [] [] []) >> return () 
 
 printHeader = liftIO $ putStrLn header 
 clearScreen = liftIO $ system "clear"
