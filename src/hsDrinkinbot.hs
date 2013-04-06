@@ -35,20 +35,20 @@ data Bot = Bot { drinkers :: [Name],
 
 type BotState = StateT Bot IO ()
 
-main = runBot $ do  initBot "../data/players" "../data/drinks" "../data/says"
-                    clearScreen
-                    printHeader
-                    say "Goaoaong"
-                    isBonusRound <- bonusRound
-                    if isBonusRound 
-                        then do say "Attention! Warning! Bonusround Bonusround!"
-                                doOnce
-                                doOnce
-                                doOnce
-                        else do doOnce
+main =loop $ do initBot "../data/players" "../data/drinks" "../data/says"
+                clearScreen
+                printHeader
+                say "Goaoaong"
+                isBonusRound <- bonusRound
+                if isBonusRound 
+                    then do say "Attention! Warning! Bonusround Bonusround!"
+                            doOnce
+                            doOnce
+                            doOnce
+                    else do doOnce
 
-                    say "Drink drink. Drink drink"
-                    printStats
+                say "Drink drink. Drink drink"
+                printStats
 
 bonusRound = do n <- pickR [1,2,3,4,5]
                 return $ n == 1
@@ -73,7 +73,7 @@ doOnce = do
 
 
 
-runBot f = 
+loop f = 
     runStateT (forever $ (f >> (liftIO $ threadDelay pause) )) (Bot [] [] [] []) >> return () 
 
 printHeader = liftIO $ putStrLn header 
