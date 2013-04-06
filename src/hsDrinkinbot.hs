@@ -5,7 +5,8 @@ import System.Cmd
 import System.Random
 import Control.Concurrent (threadDelay)
 
-pause = 10000000
+seconds = 1000000
+pause = 5*seconds
 
 type Name  = String
 type Drink = String
@@ -34,9 +35,23 @@ data Bot = Bot { drinkers :: [Name],
 
 type BotState = StateT Bot IO ()
 
-main = runBot $ do initBot "../data/players" "../data/drinks" "../data/says"
-                   doBot
+main = runBot $ do  initBot "../data/players" "../data/drinks" "../data/says"
+                    clearScreen
+                    printHeader
+                    say "Goaoaong"
+                    isBonusRound <- bonusRound
+                    if isBonusRound 
+                        then do say "Attention! Warning! Bonusround Bonusround!"
+                                doOnce
+                                doOnce
+                                doOnce
+                        else do doOnce
 
+                    say "Drink drink. Drink drink"
+                    printStats
+
+bonusRound = do n <- pickR [1,2,3,4,5]
+                return $ n == 1
 
 initBot playersFile drinksFile sayFile = 
     do players <- readConfig playersFile
@@ -47,19 +62,15 @@ initBot playersFile drinksFile sayFile =
        updateSays says
 
 
-doBot = do
-    clearScreen
-    printHeader
-    say "Goaoaong"
+doOnce = do
     sentence <- pickSentence
     if (requiresAction sentence) then do 
         player <- pickPlayer
         drink  <- pickDrink
         updateRecord player drink
-        say $ substitute sentence $ zip  ["NAME", "DRINK"] [player, drink]
+        say $ substitute sentence [("NAME", player), ("DRINK", drink)]
     else say sentence
-    say "Drink drink. Drink drink"
-    printStats
+
 
 
 runBot f = 
@@ -101,7 +112,7 @@ pick f = do
     pickR s
 
 pickSentence = pick says 
-pickPlayer = pick drinkers 
+pickPlayer = pick drinkers --balanced pick?
 pickDrink = pick drinks 
 
 updateDrinks d = do
@@ -120,9 +131,6 @@ updatePlayers players = do --that is bad for when players enter..
 substitute sentence srList = foldr (\(search,repl) s -> substitute1 s search repl) sentence srList
 
 substitute1 sentence search replace = subRegex (mkRegex search) sentence replace
-
-
-wordMap f l = unwords $ map f $ words l 
 
 readConfig file = do foo <- liftIO $ readFile file
                      return $ lines foo
